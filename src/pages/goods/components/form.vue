@@ -6,8 +6,8 @@
       @closed="closed"
       @opened="opened"
     >
-      <el-form :model="user">
-        <el-form-item label="一级分类" label-width="120px">
+      <el-form :model="user" :rules="rules">
+        <el-form-item label="一级分类" label-width="120px" prop="first_cateid">
           <el-select
             placeholder="请选择一级分类"
             v-model="user.first_cateid"
@@ -21,7 +21,7 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="二级分类" label-width="120px">
+        <el-form-item label="二级分类" label-width="120px" prop="second_cateid">
           <el-select placeholder="请选择二级分类" v-model="user.second_cateid">
             <el-option
               v-for="item in secondCateList"
@@ -31,16 +31,16 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="商品名称" label-width="120px">
+        <el-form-item label="商品名称" label-width="120px" prop="goodsname">
           <el-input
             v-model="user.goodsname"
             placeholder="请输入商品名称"
           ></el-input>
         </el-form-item>
-        <el-form-item label="价格" label-width="120px">
+        <el-form-item label="价格" label-width="120px" prop="price">
           <el-input v-model="user.price" placeholder="请输入价格"></el-input>
         </el-form-item>
-        <el-form-item label="市场价格" label-width="120px">
+        <el-form-item label="市场价格" label-width="120px" prop="market_price">
           <el-input
             v-model="user.market_price"
             placeholder="请输入市场价格"
@@ -59,7 +59,7 @@
             />
           </div>
         </el-form-item>
-        <el-form-item label="商品规格" label-width="120px">
+        <el-form-item label="商品规格" label-width="120px" prop="specsid">
           <el-select
             placeholder="请选择商品规格"
             v-model="user.specsid"
@@ -73,7 +73,7 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="规格属性" label-width="120px">
+        <el-form-item label="规格属性" label-width="120px" prop="specsattr">
           <el-select
             placeholder="请选择规格属性"
             v-model="user.specsattr"
@@ -129,16 +129,43 @@ import {
   reqgoodsDetail,
   reqgoodsUpdate,
 } from "../../../utils/http";
-import { successAlert } from "../../../utils/alert";
+import { errorAlert, successAlert } from "../../../utils/alert";
 export default {
   props: ["info"],
   data() {
     return {
+      rules: {
+        first_cateid: [
+          { required: true, message: "请输入一级分类", trigger: "change" },
+        ],
+        second_cateid: [
+          { required: true, message: "请输入二级分类", trigger: "change" },
+        ],
+        goodsname: [
+          { required: true, message: "请输入商品名称", trigger: "blur" },
+        ],
+        price: [{ required: true, message: "请输入价格", trigger: "blur" }],
+        price: [{ required: true, message: "请输入价格", trigger: "blur" }],
+        market_price: [
+          { required: true, message: "请输入商品市场价格", trigger: "blur" },
+        ],
+        specsid: [
+          { required: true, message: "请输入商品规格", trigger: "change" },
+        ],
+        specsattr: [
+          {
+            type: "array",
+            required: true,
+            message: "请至少选择一个规格属性",
+            trigger: "change",
+          },
+        ],
+      },
       user: {
         first_cateid: "",
         second_cateid: "",
         goodsname: "",
-        price: "",
+        price: "", 
         market_price: "",
         img: null,
         description: "",
@@ -148,6 +175,7 @@ export default {
         ishot: 1,
         status: 1,
       },
+
       //二级分类
       secondCateList: [],
       // 图片地址
@@ -261,26 +289,72 @@ export default {
       // 规格属性list
       this.attrsList = [];
     },
+
+    //验证
+    check() {
+      return new Promise((resolve, reject) => {
+        //验证
+        if (this.user.first_cateid === "") {
+          errorAlert("一级分类不能为空");
+          return;
+        }
+        if (this.user.second_cateid === "") {
+          errorAlert("二级分类不能为空");
+          return;
+        }
+        if (this.user.goodsname === "") {
+          errorAlert("商品名称为空");
+          return;
+        }
+        if (this.user.price === "") {
+          errorAlert("商品价格为空");
+          return;
+        }
+        if (this.user.market_price === "") {
+          errorAlert("商品市场价格为空");
+          return;
+        }
+        if (!this.user.img) {
+          errorAlert("请选择图片");
+          return;
+        }
+        if (this.user.specsid === "") {
+          errorAlert("请选择商品规格");
+          return;
+        }
+        if (this.user.specsattr.length === 0) {
+          errorAlert("请选择商品属性");
+          return;
+        }
+        if (this.editor.txt.html() === "") {
+          errorAlert("请输入商品描述");
+          return;
+        }
+        resolve();
+      });
+    },
     // 添加
     add() {
-      // 将编辑器的内容取出来给user.description
-      // this.editor.txt.html(); 取值
-      this.user.description = this.editor.txt.html();
+      this.check().then(() => {
+        // 将编辑器的内容取出来给user.description
+        // this.editor.txt.html(); 取值
+        this.user.description = this.editor.txt.html();
 
-      // 拷贝
-      let d = { ...this.user };
-      // JSON.stringify 将 JavaScript 值转换为 JSON 字符串
-      d.specsattr = JSON.stringify(d.specsattr);
+        // 拷贝
+        let d = { ...this.user };
+        // JSON.stringify 将 JavaScript 值转换为 JSON 字符串
+        d.specsattr = JSON.stringify(d.specsattr);
 
-      reqgoodsAdd(d).then((res) => {
-        if (res.data.code === 200) {
-          successAlert("添加成功!");
-          this.cancel();
-          this.empty();
-          // 刷新list
-          this.reqgoodsList();
-          this.reqgoodsCount();
-        }
+        reqgoodsAdd(d).then((res) => {
+          if (res.data.code === 200) {
+            successAlert("添加成功!");
+            this.cancel();
+            this.empty();
+            // 刷新list
+            this.reqgoodsList();
+            this.reqgoodsCount();
+          }
+        });
       });
     },
     // 详情
@@ -307,21 +381,25 @@ export default {
     opened() {
       this.editor = new E("#edit");
       this.editor.create();
+      this.editor.txt.html(this.user.description);
     },
     // 更新
     update() {
-      // 拷贝
-      let d = { ...this.user };
-      // JSON.stringify 将 JavaScript 值转换为 JSON 字符串
-      d.specsattr = JSON.stringify(d.specsattr);
-      reqgoodsUpdate(d).then((res) => {
-        if (res.data.code == 200) {
-          successAlert("更新成功");
-          this.cancel();
-          this.empty();
-          // 请二级
-          this.reqgoodsList();
-        }
+      this.check().then(() => {
+        this.user.description = this.editor.txt.html();
+        // 拷贝
+        let d = { ...this.user };
+        // JSON.stringify 将 JavaScript 值转换为 JSON 字符串
+        d.specsattr = JSON.stringify(d.specsattr);
+        reqgoodsUpdate(d).then((res) => {
+          if (res.data.code == 200) {
+            successAlert("更新成功");
+            this.cancel();
+            this.empty();
+            // 请二级
+            this.reqgoodsList();
+          }
+        });
       });
     },
     closed() {

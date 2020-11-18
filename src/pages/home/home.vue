@@ -27,7 +27,7 @@ export default {
           // 指定图表的配置项和数据
           var option = {
             title: {
-              text: "前端学习课程天数",
+              text: "商品图表",
             },
             tooltip: {},
             legend: {

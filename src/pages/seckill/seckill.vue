@@ -43,7 +43,8 @@ export default {
         title: "编辑活动",
       };
       this.$refs.form.getOne(id);
-    },
+      
+    }, 
   },
   mounted() {},
 };

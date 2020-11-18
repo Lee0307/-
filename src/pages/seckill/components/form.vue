@@ -15,13 +15,14 @@
         </el-form-item>
         <el-form-item label="活动期限" label-width="120px">
           <div class="block">
-            <span class="demonstration">默认</span>
+            <span class="demonstration"></span>
             <el-date-picker
-              v-model="value1"
+              v-model="value"
               type="datetimerange"
               range-separator="至"
               start-placeholder="开始日期"
               end-placeholder="结束日期"
+              @change="timeChange"
             >
             </el-date-picker>
           </div>
@@ -41,21 +42,22 @@
           </el-select>
         </el-form-item>
         <el-form-item label="二级分类" label-width="120px">
-          <el-select placeholder="请选择二级分类" v-model="user.second_cateid">
+          <el-select placeholder="请选择二级分类" v-model="user.second_cateid"            @change="changeSpecssId">
             <el-option
               v-for="item in secondCateList"
               :key="item.id"
               :label="item.catename"
               :value="item.id"
+   
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="活动" label-width="120px">
-          <el-select placeholder="请选择活动" v-model="user.second_cateid">
+        <el-form-item label="商品" label-width="120px">
+          <el-select placeholder="请选择商品" v-model="user.goodsid">
             <el-option
-              v-for="item in secondCateList"
+              v-for="item in attrsList"
               :key="item.id"
-              :label="item.catename"
+              :label="item.goodsname"
               :value="item.id"
             ></el-option>
           </el-select>
@@ -86,9 +88,12 @@ import E from "wangeditor";
 import { mapGetters, mapActions } from "vuex";
 import {
   reqcateList,
+  reqseckList,
   reqseckAdd,
   reqseckDetail,
   reqseckUpdate,
+  reqgoodsList
+  
 } from "../../../utils/http";
 import { successAlert } from "../../../utils/alert";
 export default {
@@ -108,7 +113,7 @@ export default {
       secondCateList: [],
       // 规格属性list
       attrsList: [],
-      value1: "",
+      value: [],
     };
   },
   computed: {
@@ -117,6 +122,8 @@ export default {
       cateList: "cate/list",
       // 从状态层中将规格取出来
       specsList: "specs/list",
+      // 商品名称从状态层中取出来
+      goodsList:"goods/list"
     }),
   },
   methods: {
@@ -127,6 +134,8 @@ export default {
       reqSpecsList: "specs/reqList",
       // 活动列表
       reqseckList: "seck/reqList",
+      // 请求商品名称
+      reqGoodsList:"goods/reqList"
     }),
     // 根据一级分类的id，得到二级分类的list
     changeFirst() {
@@ -145,30 +154,17 @@ export default {
     // 修改规格，计算出规格属性的list
     changeSpecssId() {
       // 先将specsattr置空
-      this.user.specsattr = [];
+      this.user.goodsid = '';
       this.getAattrs();
     },
     getAattrs() {
-      // 取出 specsid, 哪条数据的id和this.user.specsid是一样的
-      let obj = this.specsList.find((item) => item.id === this.user.specsid);
-      console.log(obj);
-      //就将这条数据的attrs取出来，赋值给attrsList
-      this.attrsList = obj.attrs;
-      console.log(this.attrsList);
+       reqgoodsList({ fid: this.user.first_cateid,sid:this.user.second_cateid }).then((res) => {
+        this.attrsList = res.data.list;
+      });
     },
 
     cancel() {
       this.info.isshow = false;
-    },
-    // 新增活动属性
-    addAttr() {
-      this.attrArr.push({
-        value: "",
-      });
-    },
-    // 删除活动属性
-    delAttr(index) {
-      this.attrArr.splice(index, 1);
     },
     // 清空
     empty() {
@@ -183,13 +179,13 @@ export default {
       };
       //二级分类
       this.secondCateList = [];
-      // 图片地址
-      this.imgUrl = "";
       // 规格属性list
       this.attrsList = [];
+      this.value=[]
     },
     // 添加
     add() {
+      this.timeChange()
       // 拷贝
       let d = { ...this.user };
       // JSON.stringify 将 JavaScript 值转换为 JSON 字符串
@@ -213,12 +209,9 @@ export default {
         this.user.id = id;
         // 请二级list
         this.getSecondList();
-        // 处理图片
-        this.imgUrl = this.$imgPre + this.user.img;
-        // 属性
-        this.user.specsattr = JSON.parse(this.user.specsattr);
         // 计算规格属性的list
         this.getAattrs();
+        this.value.push(new Date(JSON.parse(this.user.begintime)),new Date(JSON.parse(this.user.endtime)))
       });
     },
     //弹框打开，并且动画结束了
@@ -247,10 +240,21 @@ export default {
         this.empty();
       }
     },
+    // 设置时间
+    timeChange() {
+      this.user.begintime = this.value[0].getTime();
+      console.log(this.user.begintime);
+      this.user.endtime = this.value[1].getTime();
+      console.log(this.user.endtime);
+    },
   },
   mounted() {
     // 一进来先请求一级分类的列表
     this.reqCateList();
+    // 一进来请求商品列表
+    this.reqGoodsList();
+
+    this.reqseckList();
   },
 };
 </script>
