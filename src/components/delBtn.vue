@@ -1,0 +1,27 @@
+<template>
+  <el-button type="danger" @click="del">删除</el-button>
+</template>
+
+<script>
+export default {
+  methods: {
+    del() {
+      this.$confirm("你确定要删除吗?", "删除提示", {
+        confirmButtonText: "删除",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          // 通知父组件，点击了确定
+          this.$emit("confirm");
+        })
+        .catch(() => {
+          alert("你点了取消");
+        });
+    },
+  },
+};
+</script>
+
+<style>
+</style>
