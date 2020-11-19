@@ -1,9 +1,13 @@
 <template>
   <div>
     <el-dialog :title="info.title" :visible.sync="info.isshow" @closed="closed">
-      <el-form :model="user">
-        <el-form-item label="轮播图名称" label-width="120px">
-          <el-input v-model="user.title" autocomplete="off"></el-input>
+      <el-form :model="user" :rules="rules">
+        <el-form-item label="轮播图名称" label-width="120px" prop="title">
+          <el-input
+            v-model="user.title"
+            autocomplete="off"
+            placeholder="请输入轮播图名称"
+          ></el-input>
         </el-form-item>
         <el-form-item label="图片" label-width="120px" v-if="user.pid !== 0">
           <!-- 原生js上传图片 -->
@@ -52,6 +56,11 @@ export default {
   props: ["info"],
   data() {
     return {
+      rules: {
+        title: [
+          { required: true, message: "请输入轮播图名称", trigger: "blur" },
+        ],
+      },
       user: {
         // id: "",
         title: "",
@@ -107,19 +116,38 @@ export default {
       };
       this.imgUrl = "";
     },
-    // // 点击添加
-    add() {
-      reqbannerAdd(this.user).then((res) => {
-        if (res.data.code === 200) {
-          //弹成功
-          successAlert("添加成功");
-          //弹框消失
-          this.cancel();
-          //清空数据
-          this.empty();
-          //数据列表刷新
-          this.$emit("init");
+
+    //验证
+    check() {
+      return new Promise((resolve, reject) => {
+        //验证
+        if (this.user.title === "") {
+          errorAlert("轮播图名称为空");
+          return;
         }
+        if (!this.user.img) {
+          errorAlert("请选择图片");
+          return;
+        }
+        resolve();
+      });
+    },
+
+    // 点击添加
+    add() {
+      this.check().then(() => {
+        reqbannerAdd(this.user).then((res) => {
+          if (res.data.code === 200) {
+            //弹成功
+            successAlert("添加成功");
+            //弹框消失
+            this.cancel();
+            //清空数据
+            this.empty();
+            //数据列表刷新
+            this.$emit("init");
+          }
+        });
       });
     },
     // 获取详情
@@ -136,17 +164,19 @@ export default {
     },
     // 点击修改
     update() {
-      reqbannerUpdate(this.user).then((res) => {
-        if (res.data.code == 200) {
-          // 弹成功
-          successAlert("修改成功");
-          // 弹框消失
-          this.cancel();
-          // 清空数据
-          this.empty();
-          // 刷新list
-          this.$emit("init")
-        }
+      this.check().then(() => {
+        reqbannerUpdate(this.user).then((res) => {
+          if (res.data.code == 200) {
+            // 弹成功
+            successAlert("修改成功");
+            // 弹框消失
+            this.cancel();
+            // 清空数据
+            this.empty();
+            // 刷新list
+            this.$emit("init");
+          }
+        });
       });
     },
     // 清空数据

@@ -1,8 +1,8 @@
 <template>
   <div>
     <el-dialog :title="info.title" :visible.sync="info.isshow" @closed="closed">
-      <el-form :model="user">
-        <el-form-item label="上级分类" label-width="120px">
+      <el-form :model="user" :rules="rules">
+        <el-form-item label="上级分类" label-width="120px" prop="pid">
           <el-select v-model="user.pid" placeholder="请选择">
             <el-option :value="0" label="顶级分类"></el-option>
             <el-option
@@ -13,7 +13,7 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="分类名称" label-width="120px">
+        <el-form-item label="分类名称" label-width="120px" prop="catename">
           <el-input v-model="user.catename" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="图片" label-width="120px" v-if="user.pid !== 0">
@@ -63,6 +63,13 @@ export default {
   props: ["info"],
   data() {
     return {
+      rules: {
+        pid: [{ required: true, message: "请选择上级分类", trigger: "change" }],
+
+        catename: [
+          { required: true, message: "请输入分类名称", trigger: "blur" },
+        ],
+      },
       user: {
         pid: "",
         catename: "",
@@ -121,19 +128,42 @@ export default {
       };
       this.imgUrl = "";
     },
+
+    //验证
+    check() {
+      return new Promise((resolve, reject) => {
+        //验证
+        if (this.user.pid === "") {
+          errorAlert("上级分类为空");
+          return;
+        }
+        if (this.user.catename === "") {
+          errorAlert("分类名称为空");
+          return;
+        }
+        if (!this.user.img) {
+          errorAlert("请选择图片");
+          return;
+        }
+        resolve();
+      });
+    },
+
     // 点击添加
     add() {
-      reqcateAdd(this.user).then((res) => {
-        if (res.data.code === 200) {
-          //弹成功
-          successAlert("添加成功");
-          //弹框消失
-          this.cancel();
-          //清空数据
-          this.empty();
-          //数据列表刷新
-          this.reqList();
-        }
+      this.check().then(() => {
+        reqcateAdd(this.user).then((res) => {
+          if (res.data.code === 200) {
+            //弹成功
+            successAlert("添加成功");
+            //弹框消失
+            this.cancel();
+            //清空数据
+            this.empty();
+            //数据列表刷新
+            this.reqList();
+          }
+        });
       });
     },
     // 获取详情
@@ -150,17 +180,19 @@ export default {
     },
     // 点击修改
     update() {
-      reqcateUpdate(this.user).then((res) => {
-        if (res.data.code == 200) {
-          // 弹成功
-          successAlert("修改成功");
-          // 弹框消失
-          this.cancel();
-          // 清空数据
-          this.empty();
-          // 刷新list
-          this.reqList();
-        }
+      this.check().then(() => {
+        reqcateUpdate(this.user).then((res) => {
+          if (res.data.code == 200) {
+            // 弹成功
+            successAlert("修改成功");
+            // 弹框消失
+            this.cancel();
+            // 清空数据
+            this.empty();
+            // 刷新list
+            this.reqList();
+          }
+        });
       });
     },
     // 清空数据

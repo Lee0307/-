@@ -1,19 +1,22 @@
 <template>
   <div>
     <el-dialog :title="info.title" :visible.sync="info.isshow" @closed="closed">
-      <el-form :model="user">
-        <el-form-item label="手机号" label-width="120px">
+      <el-form :model="user" :rules="rules">
+        <el-form-item label="手机号" label-width="120px" prop="phone">
           <el-input v-model="user.phone" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="昵称" label-width="120px">
+        <el-form-item label="昵称" label-width="120px" prop="nickname">
           <el-input v-model="user.nickname" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="密码" label-width="120px">
           <el-input v-model="user.password" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="状态" label-width="120px">
-          <el-switch v-model="user.status" :active-value="1" :inactive-value="2"
-            >>
+          <el-switch
+            v-model="user.status"
+            :active-value="1"
+            :inactive-value="2"
+          >
           </el-switch>
         </el-form-item>
       </el-form>
@@ -26,7 +29,7 @@
 </template>
 <script>
 import { mapGetters, mapActions } from "vuex";
-import { successAlert } from "../../../utils/alert";
+import { successAlert,errorAlert } from "../../../utils/alert";
 import {
   reqRoleList,
   reqmemberDetail,
@@ -36,6 +39,10 @@ export default {
   props: ["info"],
   data() {
     return {
+      rules: {
+        phone: [{ required: true, message: "请输入手机号", trigger: "blur" }],
+        nickname: [{ required: true, message: "请输入昵称", trigger: "blur" }],
+      },
       user: {
         uid: "",
         nickname: "",
@@ -72,19 +79,38 @@ export default {
         this.user.password = "";
       });
     },
+
+    //验证
+    check() {
+      return new Promise((resolve, reject) => {
+        //验证
+        if (this.user.phone === "") {
+          errorAlert("手机号为空");
+          return;
+        }
+        if (this.user.nickname === "") {
+          errorAlert("昵称为空");
+          return;
+        }
+        resolve();
+      });
+    },
+
     // 点击修改
     update() {
-      reqmemberUpdate(this.user).then((res) => {
-        if (res.data.code == 200) {
-          // 弹成功
-          successAlert("修改成功");
-          // 弹框消失
-          this.cancel();
-          // 清空数据
-          this.empty();
-          // 刷新list
-          this.$emit("init");
-        }
+      this.check().then(() => {
+        reqmemberUpdate(this.user).then((res) => {
+          if (res.data.code == 200) {
+            // 弹成功
+            successAlert("修改成功");
+            // 弹框消失
+            this.cancel();
+            // 清空数据
+            this.empty();
+            // 刷新list
+            this.$emit("init");
+          }
+        });
       });
     },
     // 清空数据

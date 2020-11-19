@@ -14,7 +14,7 @@ export default new Vuex.Store({
     mutations,
     getters,
     actions,
-    modules: {
+    modules: { 
         cate,
         specs,
         goods,

@@ -77,7 +77,6 @@ export default {
     },
     // 点击添加
     add() {
-      console.log(this.user);
       reqUserAdd(this.user).then((res) => {
         if (res.data.code === 200) {
           //弹成功
