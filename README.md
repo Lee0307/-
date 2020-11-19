@@ -1,21 +1,35 @@
-# umall
+### 1.菜单管理
 
-> A Vue.js project
+增删改查  ok  验证不ok
 
-## Build Setup
+### 2.角色管理
 
-``` bash
-# install dependencies
-npm install
+增删改查 树形控件 ok  验证不ok
 
-# serve with hot reload at localhost:8080
-npm run dev
+### 3.管理员管理
 
-# build for production with minification
-npm run build
+增删改查 ok  验证不ok
 
-# build for production and view the bundle analyzer report
-npm run build --report
-```
+### 4.会员管理
 
-For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+增删改查 ok  验证不ok
+
+### 5.轮播图管理
+
+增删改查 ok  验证不ok
+
+### 5.秒杀活动
+
+增删改查 验证 ok 
+
+### 6.商品分类
+
+增删改查 ok  验证不ok
+
+### 7.商品规格
+
+增删改查 ok  验证不ok
+
+### 8.商品管理
+
+增删改查 验证 ok 
